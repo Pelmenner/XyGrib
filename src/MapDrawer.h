@@ -162,6 +162,8 @@ friend class Terrain;	// TODO (or not) getters setters
 
 		void	draw_Map_Background  (bool isEarthMapValid, Projection *proj);
 		void	draw_Map_Foreground  (QPainter &pnt, Projection *proj);
+
+		void	drawSatelliteData (QPainter &pnt, Projection *proj, GriddedPlotter *plotter);
 };
 
 

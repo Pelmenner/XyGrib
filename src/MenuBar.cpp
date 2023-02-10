@@ -428,6 +428,13 @@ MenuBar::MenuBar (QWidget *parent, bool mbe)
                         tr("Language"), "", "",flagIconName);
 
     //======================================================================
+    menuSatellite = new QMenu(tr("Satellite images"));
+    //======================================================================
+        acFile_Open = addAction (menuSatellite,
+                    tr("Open"), "Ctrl+O",
+                    tr("Open file"), Util::pathImg("fileopen.png"));
+    
+    //======================================================================
     menuHelp = new QMenu(tr("Help"));
     //======================================================================
         acHelp_Help = addAction (menuHelp,
@@ -450,6 +457,7 @@ MenuBar::MenuBar (QWidget *parent, bool mbe)
     addMenu (menuSeaState);
     addMenu (menuMap);
     addMenu (menuOptions);
+    addMenu (menuSatellite);
     addMenu (menuHelp);
     //-------------------------------------
     // Autres objets de l'interface

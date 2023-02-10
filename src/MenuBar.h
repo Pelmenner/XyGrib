@@ -332,6 +332,8 @@ public:
     QAction *acPanToggle;	// toolbar selector
     QAction *acSelectToggle;	// toolbar selector
 
+    QAction *acSatellite_OpenFile;
+
     QMenu *menuFile;
     QMenu *menuColorMap;
     QMenu *menuIsolines;
@@ -339,7 +341,7 @@ public:
     QMenu *menuAltitude;
     QMenu *menuOptions;
     QMenu *menuHelp;
-	
+    QMenu *menuSatellite;
 
 //------------------------------------------------------------------------
 private:

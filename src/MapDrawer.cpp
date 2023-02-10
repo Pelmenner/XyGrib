@@ -312,6 +312,7 @@ void MapDrawer::draw_GSHHS_and_GriddedData (
 		QPainter pnt (imgAll);
 		pnt.setRenderHint (QPainter::Antialiasing, true);
 		draw_MeteoData_Gridded (pnt, proj, plotter);
+		drawSatelliteData(pnt, proj, plotter);
 
 		//===================================================
 		// Dessin des bordures et frontières
@@ -844,5 +845,11 @@ QPixmap * MapDrawer::createPixmap_GriddedData (
 		}
 	pnt.end();
 	return pixmap;
+}
+
+//===========================================================
+void MapDrawer::drawSatelliteData (QPainter& pnt, Projection *proj, GriddedPlotter *plotter)
+{
+
 }
 
