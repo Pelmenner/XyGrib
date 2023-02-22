@@ -49,6 +49,8 @@ MeteoTableWidget.h
 MeteotableOptionsDialog.h
 RegularGridded.h
 RegularGriddedPlot.h
+SatellitePlotter.h
+SatelliteReader.h
 SkewT.h
 Stylesheet.h
 Terrain.h
@@ -96,6 +98,8 @@ Metar.cpp
 MeteoTable.cpp
 MeteoTableWidget.cpp
 MeteotableOptionsDialog.cpp
+SatellitePlotter.cpp
+SatelliteReader.cpp
 SkewT.cpp
 SkewTWindow.cpp
 Terrain.cpp
@@ -118,7 +122,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/util)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/map ${MAP_GENERATED_HEADERS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/GUI ${GUI_GENERATED_HEADERS})
 
-target_link_libraries(${CMAKE_PROJECT_NAME} g2clib gui util map ${LIBNOVA_LIBRARY} ${OPENJPEG_LIBRARIES} ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${Qt5Network_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5PrintSupport_LIBRARIES} ${BZIP2_LIBRARIES} ${ZLIB_LIBRARIES} ${PROJ_LIBRARIES} ${PNG_LIBRARIES})
+target_link_libraries(${CMAKE_PROJECT_NAME} g2clib gui util map ${LIBNOVA_LIBRARY} ${GDAL_LIBRARIES} ${OPENJPEG_LIBRARIES} ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${Qt5Network_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5PrintSupport_LIBRARIES} ${BZIP2_LIBRARIES} ${ZLIB_LIBRARIES} ${PROJ_LIBRARIES} ${PNG_LIBRARIES})
 
 # Sanitizers, part 2/2
 if ( CMAKE_VERSION VERSION_GREATER 3.4 )

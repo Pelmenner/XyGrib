@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "GshhsReader.h"
 #include "GisReader.h"
 #include "Projection.h"
+#include "SatellitePlotter.h"
 #include "POI.h"
 
 #include "GribPlot.h"
@@ -50,6 +51,7 @@ friend class Terrain;	// TODO (or not) getters setters
 				bool isEarthMapValid,
 				Projection     *proj,
 				GriddedPlotter *plotter,
+				SatellitePlotter *satellitePlotter,
 				bool drawCartouche = true
 			);
 		
@@ -75,6 +77,7 @@ friend class Terrain;	// TODO (or not) getters setters
 						time_t date, 
 						bool isEarthMapValid, 
 						GriddedPlotter *plotter,
+						SatellitePlotter *satellitePlotter,
 						Projection *proj,
 						const QList<POI*>& lspois );
 
@@ -137,6 +140,8 @@ friend class Terrain;	// TODO (or not) getters setters
 		bool  hasCurrentForArrows;
 		int   showWaveArrowsType;
 		bool  hasWaveForArrows;
+
+		bool showSatelliteImages;
 		
 		Altitude currentArrowsAltitude;
 		
@@ -163,7 +168,7 @@ friend class Terrain;	// TODO (or not) getters setters
 		void	draw_Map_Background  (bool isEarthMapValid, Projection *proj);
 		void	draw_Map_Foreground  (QPainter &pnt, Projection *proj);
 
-		void	drawSatelliteData (QPainter &pnt, Projection *proj, GriddedPlotter *plotter);
+		void	drawSatelliteData (QPainter &pnt, Projection *proj, SatellitePlotter *plotter);
 };
 
 

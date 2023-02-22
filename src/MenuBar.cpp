@@ -430,9 +430,10 @@ MenuBar::MenuBar (QWidget *parent, bool mbe)
     //======================================================================
     menuSatellite = new QMenu(tr("Satellite images"));
     //======================================================================
-        acFile_Open = addAction (menuSatellite,
-                    tr("Open"), "Ctrl+O",
-                    tr("Open file"), Util::pathImg("fileopen.png"));
+        acSatellite_OpenFile = addAction (menuSatellite,
+                    tr("Open"), "",
+                    tr("Open satellite image"), Util::pathImg("fileopen.png"));
+        acSatellite_ShowImages = addActionCheck (menuSatellite, tr("Show"), "", tr("Show images"));
     
     //======================================================================
     menuHelp = new QMenu(tr("Help"));
@@ -711,6 +712,11 @@ void MenuBar::updateDateSelector()
     acDatesGrib_prev->setEnabled (enable);
 	acDatesGrib_next->setEnabled (enable);
 	cbDatesGrib->setEnabled (enable);
+}
+
+void MenuBar::showSatelliteData(bool visible)
+{
+    acSatellite_ShowImages->setChecked(visible);
 }
 
 //------------------------------------------------------------

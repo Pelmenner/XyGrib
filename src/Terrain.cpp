@@ -82,6 +82,7 @@ Terrain::Terrain (QWidget *parent, Projection *proj, std::shared_ptr<GshhsReader
 	
     //---------------------------------------------------------------
     griddedPlot = nullptr;
+    satellitePlotter = nullptr;
     taskProgress = nullptr;
 
     //---------------------------------------------------------------
@@ -582,6 +583,16 @@ void Terrain::setLinesThetaE_Altitude (Altitude alt)
         update();
     }
 }
+//=================================================================
+void Terrain::setDrawSatelliteData(bool b)
+{
+    if (drawer->showSatelliteImages != b) {
+        drawer->showSatelliteImages = b;
+        Util::setSetting("showSatelliteImages", b);
+        mustRedraw = true;
+        update();
+    }
+}
 //-------------------------------------------------------
 void Terrain::setDrawLinesThetaE (bool b) {
     if (drawer->showLinesThetaE != b) {
@@ -772,6 +783,84 @@ GriddedPlotter *Terrain::getGriddedPlotter ()
 		return griddedPlot;
     }
     return nullptr;
+}
+
+//-------------------------------------------------------
+SatellitePlotter *Terrain::getSatellitePlotter()
+{
+    return satellitePlotter;
+}
+
+//---------------------------------------------------------
+void Terrain::loadSatelliteDataFile(const QString &fileName)
+{
+    indicateWaitingMap();
+	bool ok = false;
+	
+	taskProgress = new LongTaskProgress (this);
+	assert (taskProgress);
+	taskProgress->continueDownload = true;
+	
+    if (satellitePlotter != nullptr) {
+		delete satellitePlotter;
+        satellitePlotter = nullptr;
+	}
+	taskProgress->setMessage (LongTaskMessage::LTASK_OPEN_FILE);
+	taskProgress->setValue (0);
+    //--------------------------------------------------------
+    // Ouverture du fichier
+    //--------------------------------------------------------
+    int nbrecs;
+    {
+	    ZUFILE *file = zu_open (qPrintable(fileName), "rb", ZU_COMPRESS_AUTO);
+        if (file == nullptr) {
+        	erreur("Can't open file: %s", qPrintable(fileName));
+			taskProgress->setVisible (false);
+			delete taskProgress;
+            taskProgress = nullptr;
+	        // return DATATYPE_NONE;
+		}
+		GribReader r; // SATODO: image loader
+	    QObject::connect(taskProgress, &LongTaskProgress::canceled, &r, &LongTaskMessage::cancel);
+		// nbrecs = r.countGribRecords (file);
+		zu_close(file);
+	}
+
+    //----------------------------------------------
+    SatellitePlotter  *satellitePlotterTemp = nullptr;
+	if (nbrecs>0 && !ok && taskProgress->continueDownload) {	// try to load a GRIB file
+		//DBGQS("try to load a GRIB file: "+fileName);
+		taskProgress->setWindowTitle (tr("Open file")+" GRIB");
+		taskProgress->setVisible (true);
+		taskProgress->setValue (0);
+		satellitePlotterTemp = new SatellitePlotter ();
+		assert(satellitePlotterTemp);
+		satellitePlotterTemp->loadFile (fileName, taskProgress, nbrecs);    // GRIB file ?
+		if (satellitePlotterTemp->isReaderOk()) {
+			currentFileType = DATATYPE_GRIB;
+			ok = true;
+		}
+		else {
+			delete satellitePlotterTemp;
+            satellitePlotterTemp = nullptr;
+		}
+	}
+	taskProgress->setVisible (false);
+	
+	satellitePlotter = satellitePlotterTemp;
+
+    drawer -> initGraphicsParameters(); // reset the map drawer to app settings
+
+    update();
+
+	bool cancelled = ! taskProgress->continueDownload;
+	delete taskProgress;
+    taskProgress = nullptr;
+	
+	// if (cancelled)
+	// 	return DATATYPE_CANCELLED;
+
+    // return currentFileType;
 }
 
 //---------------------------------------------------------
@@ -1111,7 +1200,7 @@ void Terrain::paintEvent(QPaintEvent *)
         switch (currentFileType) {
 			case DATATYPE_GRIB :
 				drawer->draw_GSHHS_and_GriddedData 
-					(pnt, mustRedraw, isEarthMapValid, proj, griddedPlot, drawCartouche);
+					(pnt, mustRedraw, isEarthMapValid, proj, griddedPlot, satellitePlotter, drawCartouche);
 				break;
 			default :
 				drawer->draw_GSHHS (pnt, mustRedraw, isEarthMapValid, proj);
@@ -1145,7 +1234,7 @@ void Terrain::paintEvent(QPaintEvent *)
         switch (currentFileType) {
 			case DATATYPE_GRIB :
 				drawer->draw_GSHHS_and_GriddedData 
-						(pnt, false, true, proj, griddedPlot);
+						(pnt, false, true, proj, griddedPlot, satellitePlotter);
 				break;
 			default :
 				drawer->draw_GSHHS (pnt, mustRedraw, isEarthMapValid, proj);
@@ -1215,7 +1304,8 @@ QPixmap * Terrain::createPixmap (time_t date, int width, int height)
 					pixmap = scaleddrawer->createPixmap_GriddedData ( 
 										date, 
 										false, 
-										griddedPlot, 
+										griddedPlot,
+                                        satellitePlotter, 
 										scaledproj, 
 										getListPOIs() );
 				}
@@ -1225,6 +1315,7 @@ QPixmap * Terrain::createPixmap (time_t date, int width, int height)
 									date, 
 									false, 
                                     nullptr,
+                                    satellitePlotter,
 									scaledproj, 
 									getListPOIs() );
 		}

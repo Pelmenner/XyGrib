@@ -124,6 +124,8 @@ void MapDrawer::initGraphicsParameters()
 
     showTemperatureLabels = Util::getSetting("showTemperatureLabels", false).toBool();
     showGribGrid = Util::getSetting("showGribGrid", false).toBool();
+
+	showSatelliteImages = Util::getSetting("showSatelliteImages", false).toBool();
 }
 
 //-------------------------------------------
@@ -297,6 +299,7 @@ void MapDrawer::draw_GSHHS_and_GriddedData (
 			bool mustRedraw, bool isEarthMapValid,
 			Projection *proj,
 			GriddedPlotter   *plotter,
+			SatellitePlotter *SatellitePlotter,
 			bool drawCartouche
 	)
 {
@@ -311,8 +314,9 @@ void MapDrawer::draw_GSHHS_and_GriddedData (
 		//===================================================
 		QPainter pnt (imgAll);
 		pnt.setRenderHint (QPainter::Antialiasing, true);
+		if (showSatelliteImages)
+			drawSatelliteData(pnt, proj, SatellitePlotter);
 		draw_MeteoData_Gridded (pnt, proj, plotter);
-		drawSatelliteData(pnt, proj, plotter);
 
 		//===================================================
 		// Dessin des bordures et frontières
@@ -822,6 +826,7 @@ QPixmap * MapDrawer::createPixmap_GriddedData (
 						time_t date, 
 						bool isEarthMapValid, 
 						GriddedPlotter *plotter,
+						SatellitePlotter *satellitePlotter,
 						Projection *proj,
 						const QList<POI*>& lspois )
 {
@@ -832,7 +837,7 @@ QPixmap * MapDrawer::createPixmap_GriddedData (
 	
 		if (plotter) {
 			plotter->setCurrentDate (date);
-			this->draw_GSHHS_and_GriddedData (pnt, true, isEarthMapValid, proj, plotter);
+			this->draw_GSHHS_and_GriddedData (pnt, true, isEarthMapValid, proj, plotter, satellitePlotter);
 		}
 		else {
 			this->draw_GSHHS (pnt, true, isEarthMapValid, proj);
@@ -848,8 +853,9 @@ QPixmap * MapDrawer::createPixmap_GriddedData (
 }
 
 //===========================================================
-void MapDrawer::drawSatelliteData (QPainter& pnt, Projection *proj, GriddedPlotter *plotter)
+void MapDrawer::drawSatelliteData (QPainter& pnt, Projection *proj, SatellitePlotter *plotter)
 {
-
+	if (plotter != nullptr)
+		plotter->draw (pnt, proj);
 }
 

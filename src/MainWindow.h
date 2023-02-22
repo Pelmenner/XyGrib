@@ -65,6 +65,7 @@ class MainWindow: public QMainWindow
         ~MainWindow();
 
         void openMeteoDataFile (const QString& fileName);
+        void openSatelliteDataFile (const QString& fileName);
 		
 		void openSkewtDiagramWindow (double lon, double lat, 
 									 GriddedReader *reader = NULL, 
@@ -90,6 +91,8 @@ public slots:
         void slotFile_Open ();
         void slotFile_Close ();
         void slotFile_Load_GRIB ();
+
+        void slotOpenSatelliteImageFile();
 		
         void slotFile_GribServerStatus ();
         void slotFile_Info_GRIB ();
@@ -152,6 +155,7 @@ public slots:
         void slotNetworkError(QNetworkReply::NetworkError);
         void slotFinished();
 
+
     signals:
         void signalMapQuality (int quality);
 
@@ -161,6 +165,9 @@ public slots:
         
         QString      gribFileName;
         QString      gribFilePath;
+
+        QString satelliteImageFileName;
+        QString satelliteImageFilePath;
         
 		QNetworkAccessManager *networkManager;
 

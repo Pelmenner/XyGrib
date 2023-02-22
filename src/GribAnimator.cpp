@@ -314,6 +314,7 @@ void GribAnimator::createImages()
 		img->pixmap = drawer->createPixmap_GriddedData ( 
 								date, isEarthMapValid, 
 								gribplot,
+								nullptr, // SATODO: check it
 								proj,
 								lspois );
 		isEarthMapValid = true;

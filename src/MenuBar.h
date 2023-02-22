@@ -68,6 +68,7 @@ public:
     void updateCurrentDate (time_t currentDate);
 
     void updateDateSelector();
+    void showSatelliteData (bool visible);
 
     time_t  getDateGribById (int id);
 
@@ -333,6 +334,7 @@ public:
     QAction *acSelectToggle;	// toolbar selector
 
     QAction *acSatellite_OpenFile;
+    QAction *acSatellite_ShowImages;
 
     QMenu *menuFile;
     QMenu *menuColorMap;

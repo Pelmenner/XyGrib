@@ -467,6 +467,9 @@ mb->acMap_SelectMETARs->setVisible (false);	// TODO
 	connect(mb->acAlt_GeopotLabels, SIGNAL(triggered(bool)),
 			terre,  SLOT(setDrawGeopotentialLabels (bool)));
     //-----------------------------------------------------------
+	connect(mb->acSatellite_OpenFile, SIGNAL(triggered()), this, SLOT(slotOpenSatelliteImageFile()));
+	connect(mb->acSatellite_ShowImages, SIGNAL(triggered(bool)),
+            terre,  SLOT(setDrawSatelliteData(bool)));
 	// added by Tim Holtschneider, 05.2010
 	// extra context menu for data plot
 //	if (mb->ac_OpenCurveDrawer)
@@ -518,6 +521,9 @@ MainWindow::MainWindow (int w, int h, QWidget *parent)
 	setWindowTitle(Version::getShortName());
     gribFileName = "";
     gribFilePath = Util::getSetting("gribFilePath", "").toString();
+
+	satelliteImageFileName = "";
+	satelliteImageFilePath = Util::getSetting("satelliteImageFilePath", "").toString();
 	
 	networkManager = new QNetworkAccessManager (this);
 	assert (networkManager);
@@ -1078,6 +1084,79 @@ void MainWindow::openMeteoDataFile (const QString& fileName)
         dateChooser->setGriddedPlotter (nullptr);
 		dateChooser->setVisible (false);
 		menuBar->updateListeDates({} , 0);
+	}
+	setCursor(oldcursor);
+}
+//-------------------------------------------------------------
+void MainWindow::openSatelliteDataFile(const QString &fileName) // SATODO: rewrite this function
+{
+QCursor oldcursor = cursor();
+	setCursor(Qt::WaitCursor);
+	FileDataType meteoFileType = DATATYPE_NONE;
+    colorScaleWidget->setColorScale (nullptr, DataCode());
+    dateChooser->reset ();
+	if (QFile::exists(fileName))
+	{
+		terre->loadSatelliteDataFile (fileName);
+		// if (meteoFileType != DATATYPE_NONE)
+		// 	Util::setSetting("satelliteFileName",  fileName);
+	}
+	
+	SatellitePlotter *plotter = terre->getSatellitePlotter();
+    if (plotter!=nullptr && plotter->isReaderOk())
+	{
+	    disableMenubarItems();
+	    setMenubarItems();
+		//------------------------------------------------
+		if (meteoFileType == DATATYPE_GRIB)
+		//------------------------------------------------
+		{
+			setWindowTitle (Version::getShortName()+" - "+ QFileInfo(fileName).fileName());
+			// menuBar->updateListeDates (plotter->getListDates(),
+			// 						   plotter->getCurrentDate() );
+			satelliteImageFileName = fileName;
+			
+			// Malformed grib file ?
+			// GriddedReader *reader = plotter->getReader();
+			// if (reader->hasAmbiguousHeader()) {
+			// 	QMessageBox::warning (this,
+			// 	tr("Warning"),
+			// 	tr("File :") + fileName 
+			// 	+ "\n\n"
+			// 	+ tr("The header of this GRIB file do not respect standard format.")
+			// 	+ "\n\n"
+			// 	+ tr("Despite efforts to interpret it, output may be incorrect.")
+			// 	+ "\n\n"
+			// 	+ tr("Please inform the supplier of this file that the GDS section of "
+			// 	   "the file header is ambiguous, particularly about data position.")					
+			// 	+ "\n"
+			// 	);
+			// }
+		}
+		//------------------------------------------------
+		menuBar->updateDateSelector( );
+
+		// dateChooser->setGriddedPlotter (plotter);
+		dateChooser->setVisible (Util::getSetting("showDateChooser", true).toBool());
+		//-----------------------------------------------
+		updateGriddedData ();
+	}
+	//------------------------------------------------
+	else  
+	{
+		// if (meteoFileType != DATATYPE_CANCELLED) {
+		// 	QMessageBox::critical (this,
+		// 		tr("Error"),
+		// 		tr("File :") + fileName + "\n\n"
+		// 			+ tr("Can't open file.") + "\n\n"
+		// 			+ tr("It's not a GRIB file,") + "\n"
+		// 			+ tr("or it contains unrecognized data,") + "\n"
+		// 			+ tr("or...")
+		// 	);
+		// }
+        // dateChooser->setGriddedPlotter (nullptr);
+		// dateChooser->setVisible (false);
+		// menuBar->updateListeDates({} , 0);
 	}
 	setCursor(oldcursor);
 }
@@ -1673,6 +1752,25 @@ void MainWindow::slotFile_Load_GRIB ()
         QMessageBox::warning (this,
             tr("Download a GRIB file"),
             tr("Please select an area on the map."));
+    }
+}
+//-----------------------------------------------
+void MainWindow::slotOpenSatelliteImageFile()
+{
+	QString filter = "";
+/*    filter =  tr("Fichiers GRIB (*.grb *.grib *.grb.bz2 *.grib.bz2 *.grb.gz *.grib.gz)")
+            + tr(";;Autres fichiers (*)");*/
+    QString fileName = Util::getOpenFileName(this,
+                         tr("Choose a satellite image file"),
+                         satelliteImageFilePath,
+                         filter);
+    if (fileName != "")
+    {
+        QFileInfo finfo(fileName);
+        satelliteImageFilePath = finfo.absolutePath();
+    	Util::setSetting("satelliteImageFilePath",  satelliteImageFilePath);
+        openSatelliteDataFile (fileName);
+		menuBar->showSatelliteData(true);
     }
 }
 //-----------------------------------------------

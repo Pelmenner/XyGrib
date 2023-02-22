@@ -53,10 +53,13 @@ public:
     FileDataType  loadMeteoDataFile (const QString& fileName, bool zoom);
 	FileDataType  getMeteoFileType()  {return currentFileType;}
 
+    void loadSatelliteDataFile(const QString& fileName);
+
 	void  closeMeteoDataFile();
 
 	//--------------------------------------------------------
 	GriddedPlotter  *getGriddedPlotter ();
+    SatellitePlotter *getSatellitePlotter ();
 	//--------------------------------------------------------
 	
     void  indicateWaitingMap();    // Affiche un message d'attente
@@ -146,6 +149,8 @@ public slots :
     void setDrawLinesThetaE_Labels (bool);
     void setLinesThetaE_Step	    (double step);
     void setLinesThetaE_Altitude   (Altitude alt);
+
+    void setDrawSatelliteData (bool);
 	
     void slotTimerResize();
     void slotTimerZoomWheel();
@@ -167,6 +172,7 @@ private:
     GisReader   *gisReader;
 
     GriddedPlotter  *griddedPlot;
+    SatellitePlotter *satellitePlotter;
     
     bool        isEarthMapValid;
     bool        mustRedraw;
