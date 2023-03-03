@@ -43,6 +43,7 @@ class ZeroOneActionGroup : public QObject
 		QList <QAction *> lsactions;
 };
 
+class SatelliteReader;
 
 //================================================================
 class MenuBar : public QMenuBar
@@ -69,9 +70,11 @@ public:
 
     void updateDateSelector();
     void showSatelliteData (bool visible);
+    void setSatelliteLayer (int layer);
+    void updateSatelliteLayers (const SatelliteReader* reader);
+    void resetSatelliteLayers ();
 
     time_t  getDateGribById (int id);
-
 
 	QMenu * createPopupBtRight(QWidget *parent);
 
@@ -335,6 +338,10 @@ public:
 
     QAction *acSatellite_OpenFile;
     QAction *acSatellite_ShowImages;
+    QMenu *menuSatelliteLayer;
+    QActionGroup *acSatellite_GroupLayer;
+        QVector<QAction*> acSatellite_Layers;
+    
 
     QMenu *menuFile;
     QMenu *menuColorMap;

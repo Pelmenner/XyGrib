@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Font.h"
 #include "Util.h"
 #include "Projection.h"
+#include "SatelliteReader.h"
 
 //===================================================================================
 void ZeroOneActionGroup::addAction (QAction *act)
@@ -434,6 +435,11 @@ MenuBar::MenuBar (QWidget *parent, bool mbe)
                     tr("Open"), "",
                     tr("Open satellite image"), Util::pathImg("fileopen.png"));
         acSatellite_ShowImages = addActionCheck (menuSatellite, tr("Show"), "", tr("Show images"));
+        menuSatellite->addSeparator();
+        menuSatelliteLayer = new QMenu(tr("Layer"));
+        acSatellite_GroupLayer = new QActionGroup(menuSatelliteLayer);
+		menuSatellite->addMenu(menuSatelliteLayer);
+        menuSatelliteLayer->setVisible(false);
     
     //======================================================================
     menuHelp = new QMenu(tr("Help"));
@@ -714,9 +720,47 @@ void MenuBar::updateDateSelector()
 	cbDatesGrib->setEnabled (enable);
 }
 
+//--------------------------------------------------------
 void MenuBar::showSatelliteData(bool visible)
 {
     acSatellite_ShowImages->setChecked(visible);
+}
+
+//-----------------------------------------------------------
+void MenuBar::setSatelliteLayer(int layer)
+{
+    acSatellite_Layers[layer]->setChecked(true);
+}
+
+//----------------------------------------------------------------
+void MenuBar::updateSatelliteLayers(const SatelliteReader *reader)
+{
+    resetSatelliteLayers();
+    int bandsNumber = reader->getBandsNumber();
+    for (int i = 0; i < bandsNumber; ++i)
+    {
+        QString description = reader->getBandDescription(i + 1);
+        if (description == "")
+            description = QStringLiteral("Band #%1").arg(i + 1);
+        QAction* acLayer = addGroup(acSatellite_GroupLayer, menuSatelliteLayer, description, "", description);
+        acSatellite_Layers.push_back(acLayer);
+    }
+    if (bandsNumber == 3)
+    {
+        QAction* acLayer = addGroup(acSatellite_GroupLayer, menuSatelliteLayer, "RGB", "", 
+                                    tr("Use first 3 channels as RGB"));
+        acSatellite_Layers.push_back(acLayer);
+    }
+    menuSatelliteLayer->setEnabled(bandsNumber > 0);
+}
+
+void MenuBar::resetSatelliteLayers()
+{
+    menuSatelliteLayer->setVisible(false);
+    for (auto layer : acSatellite_Layers)
+        layer->deleteLater();
+    acSatellite_Layers.clear();
+    menuSatelliteLayer->setEnabled(false);
 }
 
 //------------------------------------------------------------

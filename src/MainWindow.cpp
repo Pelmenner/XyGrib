@@ -427,6 +427,10 @@ mb->acMap_SelectMETARs->setVisible (false);	// TODO
 
     connect(mb->acHelp_AProposQT, SIGNAL(triggered()), this, SLOT(slotHelp_AProposQT()));
 
+	connect(mb->acSatellite_OpenFile, SIGNAL(triggered()), this, SLOT(slotOpenSatelliteImageFile()));
+	connect(mb->acSatellite_GroupLayer, SIGNAL(triggered(QAction *)),
+            this, SLOT(slotSatellite_Layer(QAction *)));
+
     //-------------------------------------
     // Autres objets de l'interface
     //-------------------------------------
@@ -467,7 +471,6 @@ mb->acMap_SelectMETARs->setVisible (false);	// TODO
 	connect(mb->acAlt_GeopotLabels, SIGNAL(triggered(bool)),
 			terre,  SLOT(setDrawGeopotentialLabels (bool)));
     //-----------------------------------------------------------
-	connect(mb->acSatellite_OpenFile, SIGNAL(triggered()), this, SLOT(slotOpenSatelliteImageFile()));
 	connect(mb->acSatellite_ShowImages, SIGNAL(triggered(bool)),
             terre,  SLOT(setDrawSatelliteData(bool)));
 	// added by Tim Holtschneider, 05.2010
@@ -1087,78 +1090,41 @@ void MainWindow::openMeteoDataFile (const QString& fileName)
 	}
 	setCursor(oldcursor);
 }
-//-------------------------------------------------------------
-void MainWindow::openSatelliteDataFile(const QString &fileName) // SATODO: rewrite this function
-{
-QCursor oldcursor = cursor();
-	setCursor(Qt::WaitCursor);
-	FileDataType meteoFileType = DATATYPE_NONE;
-    colorScaleWidget->setColorScale (nullptr, DataCode());
-    dateChooser->reset ();
-	if (QFile::exists(fileName))
-	{
-		terre->loadSatelliteDataFile (fileName);
-		// if (meteoFileType != DATATYPE_NONE)
-		// 	Util::setSetting("satelliteFileName",  fileName);
-	}
-	
-	SatellitePlotter *plotter = terre->getSatellitePlotter();
-    if (plotter!=nullptr && plotter->isReaderOk())
-	{
-	    disableMenubarItems();
-	    setMenubarItems();
-		//------------------------------------------------
-		if (meteoFileType == DATATYPE_GRIB)
-		//------------------------------------------------
-		{
-			setWindowTitle (Version::getShortName()+" - "+ QFileInfo(fileName).fileName());
-			// menuBar->updateListeDates (plotter->getListDates(),
-			// 						   plotter->getCurrentDate() );
-			satelliteImageFileName = fileName;
-			
-			// Malformed grib file ?
-			// GriddedReader *reader = plotter->getReader();
-			// if (reader->hasAmbiguousHeader()) {
-			// 	QMessageBox::warning (this,
-			// 	tr("Warning"),
-			// 	tr("File :") + fileName 
-			// 	+ "\n\n"
-			// 	+ tr("The header of this GRIB file do not respect standard format.")
-			// 	+ "\n\n"
-			// 	+ tr("Despite efforts to interpret it, output may be incorrect.")
-			// 	+ "\n\n"
-			// 	+ tr("Please inform the supplier of this file that the GDS section of "
-			// 	   "the file header is ambiguous, particularly about data position.")					
-			// 	+ "\n"
-			// 	);
-			// }
-		}
-		//------------------------------------------------
-		menuBar->updateDateSelector( );
 
-		// dateChooser->setGriddedPlotter (plotter);
-		dateChooser->setVisible (Util::getSetting("showDateChooser", true).toBool());
-		//-----------------------------------------------
-		updateGriddedData ();
-	}
-	//------------------------------------------------
-	else  
+//-------------------------------------------------------------
+void MainWindow::openSatelliteDataFile(const QString &fileName)
+{
+	QCursor oldcursor = cursor ();
+	setCursor (Qt::WaitCursor);
+    colorScaleWidget->setColorScale (nullptr, DataCode());
+	if (!QFile::exists (fileName))
 	{
-		// if (meteoFileType != DATATYPE_CANCELLED) {
-		// 	QMessageBox::critical (this,
-		// 		tr("Error"),
-		// 		tr("File :") + fileName + "\n\n"
-		// 			+ tr("Can't open file.") + "\n\n"
-		// 			+ tr("It's not a GRIB file,") + "\n"
-		// 			+ tr("or it contains unrecognized data,") + "\n"
-		// 			+ tr("or...")
-		// 	);
-		// }
-        // dateChooser->setGriddedPlotter (nullptr);
-		// dateChooser->setVisible (false);
-		// menuBar->updateListeDates({} , 0);
+		QMessageBox::critical (this, tr("Error"), tr("Could not find satellite image file:") + fileName);
+		setCursor (oldcursor);
+		return;
 	}
-	setCursor(oldcursor);
+
+	terre->loadSatelliteDataFile (fileName);
+	Util::setSetting ("satelliteFileName",  fileName);
+	
+	SatellitePlotter *plotter = terre->getSatellitePlotter ();
+    if (plotter!=nullptr && plotter->isReaderOk ())
+	{
+	    disableMenubarItems ();
+	    setMenubarItems ();
+		menuBar->updateSatelliteLayers(plotter->getReader());
+		satelliteImageFileName = fileName;
+		menuBar->acSatellite_ShowImages->setChecked (true);
+		menuBar->acSatellite_Layers.last()->setChecked (true);
+		terre->setSatelliteLayer(menuBar->acSatellite_Layers.size() - 1);
+		terre->slotMustRedraw ();
+	}
+	else
+	{
+		menuBar->resetSatelliteLayers ();
+		QMessageBox::critical (this, tr("Error"), tr("Could not load satellite image file"));
+	}
+	setCursor (oldcursor);
 }
 //-------------------------------------------------------
 void MainWindow::slotUseJetStreamColorMap (bool b) 
@@ -1772,6 +1738,18 @@ void MainWindow::slotOpenSatelliteImageFile()
         openSatelliteDataFile (fileName);
 		menuBar->showSatelliteData(true);
     }
+}
+//----------------------------------------------------------------
+void MainWindow::slotSatellite_Layer(QAction *ac)
+{
+	for (int i = 0; i < menuBar->acSatellite_Layers.size(); ++i)
+	{
+		if (ac == menuBar->acSatellite_Layers[i])
+		{
+			terre->setSatelliteLayer(i);
+			return;
+		}
+	}
 }
 //-----------------------------------------------
 void MainWindow::slotModelRectChanged(int sel)

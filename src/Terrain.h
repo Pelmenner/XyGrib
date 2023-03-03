@@ -54,6 +54,7 @@ public:
 	FileDataType  getMeteoFileType()  {return currentFileType;}
 
     void loadSatelliteDataFile(const QString& fileName);
+    void setSatelliteLayer (int layer);
 
 	void  closeMeteoDataFile();
 

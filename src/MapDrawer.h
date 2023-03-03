@@ -59,7 +59,8 @@ friend class Terrain;	// TODO (or not) getters setters
 				QPainter &pntGlobal,
 				bool mustRedraw,
 				bool isEarthMapValid,
-				Projection *proj
+				Projection *proj,
+				SatellitePlotter *satellitePlotter
 			);
 		
 		// Cartouche : dates de la prévision courante + infos générales

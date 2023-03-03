@@ -92,7 +92,8 @@ public slots:
         void slotFile_Close ();
         void slotFile_Load_GRIB ();
 
-        void slotOpenSatelliteImageFile();
+        void slotOpenSatelliteImageFile ();
+        void slotSatellite_Layer (QAction *ac);
 		
         void slotFile_GribServerStatus ();
         void slotFile_Info_GRIB ();

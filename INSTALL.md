@@ -16,7 +16,12 @@ https://gihub.com/opengribs/XyGrib/releases or on https://opengribs.org in the d
 ### Linux
 
 - Install the required libraries
-  - Ubuntu (recent editions): `sudo apt-get install build-essential git cmake qt5-default libpng-dev libopenjp2-7-dev libnova-dev libproj-dev zlib1g-dev libbz2-dev`
+  - Ubuntu (recent editions): 
+  ```shell
+    sudo add-apt-repository ppa:ubuntugis/ppa
+    sudo apt-get update
+    sudo apt-get install build-essential git cmake qt5-default libpng-dev libopenjp2-7-dev libnova-dev libproj-dev zlib1g-dev libbz2-dev libgdal-dev
+  ```
   - Ubuntu Trusty: `sudo apt-get install build-essential git cmake qt5-default libpng-dev libopenjpeg-dev libnova-dev libproj-dev zlib1g-dev libbz2-dev`
   - Fedora 30:
   	- Build: `sudo dnf install gcc cmake make qt5-devel libpng-devel openjpeg2-devel libnova-devel proj-devel zlib-devel bzip2-devel`

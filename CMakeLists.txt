@@ -56,6 +56,9 @@ include_directories(${Qt5PrintSupport_INCLUDE_DIRS})
 find_package(Qt5Xml CONFIG REQUIRED)
 include_directories(${Qt5Xml_INCLUDE_DIRS})
 
+find_package(GDAL REQUIRED)
+include_directories( include ${GDAL_INCLUDE_DIRS})
+
 find_library(LIBNOVA_LIBRARY
      NAMES "libnova.a" "libnova.so"
      PATHS

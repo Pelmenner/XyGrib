@@ -271,7 +271,7 @@ void MapDrawer::draw_Map_Foreground(QPainter &pnt, Projection *proj)
 void MapDrawer::draw_GSHHS (
 			QPainter &pntGlobal,
 			bool mustRedraw, bool isEarthMapValid,
-			Projection *proj
+			Projection *proj, SatellitePlotter* SatellitePlotter
 	)
 {
     if (mustRedraw  ||  !isEarthMapValid)
@@ -280,11 +280,13 @@ void MapDrawer::draw_GSHHS (
 		// Dessin du fond de carte
 		//===================================================
 		draw_Map_Background (isEarthMapValid, proj);
+		QPainter pnt (imgAll);
+		pnt.setRenderHint (QPainter::Antialiasing, true);
+		if (showSatelliteImages)
+			drawSatelliteData(pnt, proj, SatellitePlotter);
 		//===================================================
 		// Dessin des bordures et frontières
 		//===================================================
-		QPainter pnt (imgAll);
-		pnt.setRenderHint (QPainter::Antialiasing, true);
 		draw_Map_Foreground (pnt, proj);
     }
     // Recopie l'image complète
@@ -840,7 +842,7 @@ QPixmap * MapDrawer::createPixmap_GriddedData (
 			this->draw_GSHHS_and_GriddedData (pnt, true, isEarthMapValid, proj, plotter, satellitePlotter);
 		}
 		else {
-			this->draw_GSHHS (pnt, true, isEarthMapValid, proj);
+			this->draw_GSHHS (pnt, true, isEarthMapValid, proj, satellitePlotter);
 		}
 		// Ajoute les pOIs visibles
 		for (auto poi : lspois) {

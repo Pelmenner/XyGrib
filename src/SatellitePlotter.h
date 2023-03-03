@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QPainter>
 #include "gdal_priv.h"
+#include <QSharedPointer>
 
 #include "DataPointInfo.h"
 #include "LongTaskProgress.h"
@@ -37,25 +38,20 @@ class SatellitePlotter
         void draw(QPainter& pnt, Projection *proj);
         
 		void loadFile (const QString &fileName,
-						LongTaskProgress *taskProgress=NULL, int nbrecs=0);
+						LongTaskProgress *taskProgress=nullptr);
 		
-        // GribReader *getReader()  const  {return gribReader != nullptr && gribReader->isOk()? gribReader: nullptr;}
-
 		void setCurrentDate (time_t t);
 
         bool isReaderOk() const;
-
-		// virtual bool  isReaderOk() const  
-		// 				{return gribReader!=nullptr && gribReader->isOk();}
+        void setLayer(int newLayer);
+        const SatelliteReader* getReader() const;
     
-    protected:
-		// void  loadImages (LongTaskProgress *taskProgress, int nbrecs);
-        
-        SatelliteReader *reader;
-        Projection *projection;
-        QImage satelliteImage;     
+    private:
+        QSharedPointer<SatelliteReader> reader;
         QString fileName;
         time_t currentDate;
+        int layer;
+        bool rgb;
 };
 
 #endif // SATELLITEPLOTTER_H

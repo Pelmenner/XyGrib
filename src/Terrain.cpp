@@ -798,69 +798,47 @@ void Terrain::loadSatelliteDataFile(const QString &fileName)
 	bool ok = false;
 	
 	taskProgress = new LongTaskProgress (this);
-	assert (taskProgress);
 	taskProgress->continueDownload = true;
 	
-    if (satellitePlotter != nullptr) {
+    if (satellitePlotter != nullptr) 
+    {
 		delete satellitePlotter;
         satellitePlotter = nullptr;
 	}
+
 	taskProgress->setMessage (LongTaskMessage::LTASK_OPEN_FILE);
 	taskProgress->setValue (0);
-    //--------------------------------------------------------
-    // Ouverture du fichier
-    //--------------------------------------------------------
-    int nbrecs;
+	taskProgress->setWindowTitle (tr("Open satellite file"));
+	taskProgress->setVisible (true);
+	taskProgress->setValue (0);
+
+    SatellitePlotter  *satellitePlotterTemp = new SatellitePlotter ();
+	satellitePlotterTemp->loadFile (fileName, taskProgress);    
+	if (!satellitePlotterTemp->isReaderOk()) 
     {
-	    ZUFILE *file = zu_open (qPrintable(fileName), "rb", ZU_COMPRESS_AUTO);
-        if (file == nullptr) {
-        	erreur("Can't open file: %s", qPrintable(fileName));
-			taskProgress->setVisible (false);
-			delete taskProgress;
-            taskProgress = nullptr;
-	        // return DATATYPE_NONE;
-		}
-		GribReader r; // SATODO: image loader
-	    QObject::connect(taskProgress, &LongTaskProgress::canceled, &r, &LongTaskMessage::cancel);
-		// nbrecs = r.countGribRecords (file);
-		zu_close(file);
+		delete satellitePlotterTemp;
+        satellitePlotterTemp = nullptr;
 	}
 
-    //----------------------------------------------
-    SatellitePlotter  *satellitePlotterTemp = nullptr;
-	if (nbrecs>0 && !ok && taskProgress->continueDownload) {	// try to load a GRIB file
-		//DBGQS("try to load a GRIB file: "+fileName);
-		taskProgress->setWindowTitle (tr("Open file")+" GRIB");
-		taskProgress->setVisible (true);
-		taskProgress->setValue (0);
-		satellitePlotterTemp = new SatellitePlotter ();
-		assert(satellitePlotterTemp);
-		satellitePlotterTemp->loadFile (fileName, taskProgress, nbrecs);    // GRIB file ?
-		if (satellitePlotterTemp->isReaderOk()) {
-			currentFileType = DATATYPE_GRIB;
-			ok = true;
-		}
-		else {
-			delete satellitePlotterTemp;
-            satellitePlotterTemp = nullptr;
-		}
-	}
 	taskProgress->setVisible (false);
-	
 	satellitePlotter = satellitePlotterTemp;
 
     drawer -> initGraphicsParameters(); // reset the map drawer to app settings
-
     update();
 
-	bool cancelled = ! taskProgress->continueDownload;
 	delete taskProgress;
     taskProgress = nullptr;
-	
-	// if (cancelled)
-	// 	return DATATYPE_CANCELLED;
+}
 
-    // return currentFileType;
+//-------------------------------------------------------
+void Terrain::setSatelliteLayer(int layer)
+{
+    if (satellitePlotter != nullptr)
+    {
+        satellitePlotter->setLayer(layer);
+        mustRedraw = true;
+        update();
+    }
 }
 
 //---------------------------------------------------------
@@ -1203,7 +1181,7 @@ void Terrain::paintEvent(QPaintEvent *)
 					(pnt, mustRedraw, isEarthMapValid, proj, griddedPlot, satellitePlotter, drawCartouche);
 				break;
 			default :
-				drawer->draw_GSHHS (pnt, mustRedraw, isEarthMapValid, proj);
+				drawer->draw_GSHHS (pnt, mustRedraw, isEarthMapValid, proj, satellitePlotter);
         }
 		
         setCursor(oldcursor);
@@ -1237,7 +1215,7 @@ void Terrain::paintEvent(QPaintEvent *)
 						(pnt, false, true, proj, griddedPlot, satellitePlotter);
 				break;
 			default :
-				drawer->draw_GSHHS (pnt, mustRedraw, isEarthMapValid, proj);
+				drawer->draw_GSHHS (pnt, mustRedraw, isEarthMapValid, proj, satellitePlotter);
         }
 	}
     

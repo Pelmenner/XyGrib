@@ -26,6 +26,7 @@
 
 #include "gdal_priv.h"
 #include <QString>
+#include <QSharedPointer>
 
 #include "RegularGridded.h"
 #include "LongTaskMessage.h"
@@ -36,111 +37,33 @@ public:
     SatelliteReader();
     ~SatelliteReader();
 
-    void openFile(const QString &fname, int nbrecs);
+    void openFile(const QString &fname);
     bool isOk() const;
     void closeCurrentFile();
 
-    GDALRasterBand* getRecord(time_t date);
-    void getGeoTransform(double adfGeoTransform[6]);
+    GDALRasterBand *getRecord(int bandNumber) const;
+    GDALRasterBand *getRecord() const;
+    bool setGeoTransform(double adfGeoTransform[6]);
 
-    // 		virtual FileDataType getReaderFileDataType ()
-    // 					{return DATATYPE_GRIB;};
+    void transformMapToScreen(double lon, double lat, double *x, double *y);
+    void transformScreenToMap(double x, double y, double *lon, double *lat);
 
-    //         int  getNumberOfGribRecords (DataCode dtc);
-    //         int  getTotalNumberOfGribRecords ();
+    void initTransform();
 
-    //         GribRecord * getFirstGribRecord ();
-    //         GribRecord * getFirstGribRecord (DataCode dtc);
-
-    //         virtual time_t  getFirstRefDate ();
-    //         virtual time_t  getRefDateForData (const DataCode &dtc);
-    // 		virtual time_t  getRefDateForDataCenter (const DataCenterModel &dcm);
-
-    // 		virtual GriddedRecord *getFirstRecord ()
-    // 							{return getFirstGribRecord();};
-
-    // 		virtual GribRecord *getRecord (DataCode dtc, time_t date);
-
-    // 		// Value at a point for an existing date
-    //         virtual double getDateInterpolatedValue (
-    // 							DataCode dtc, double px, double py, time_t date);
-
-    // 		// Value at a point for a date between 2 existing dates
-    //         double  get2DatesInterpolatedValue (
-    // 							DataCode dtc, double px, double py, time_t date);
-
-    // 		int	   getDewpointDataStatus (int levelType,int levelValue);
-
-    //         // Rectangle de la zone couverte par les données
-    //         bool getZoneExtension (double *x0,double *y0, double *x1,double *y1);
-
-    // 		enum GribFileDataStatus {
-    // 				DATA_IN_FILE, NO_DATA_IN_FILE, COMPUTED_DATA
-    // 		};
-
-    // 		void  computeAccumulationRecords ();
-    // 		void  computeAccumulationRecords (DataCode dtc);
-
-    // 		void  copyFirstCumulativeRecord   ();
-    // 		void  removeFirstCumulativeRecord ();
-    // 		void  copyFirstCumulativeRecord   (DataCode dtc);
-    // 		void  removeFirstCumulativeRecord (DataCode dtc);
-
-    // 		void  copyMissingWaveRecords   ();
-    // 		void  removeMissingWaveRecords ();
-    // 		void  copyMissingWaveRecords   (DataCode dtc);
-
-    // 		virtual bool hasAltitudeData () const  {return hasAltitude;}
-    // 		bool    hasAmbiguousHeader ()  {return ambiguousHeader;}
-
-    // 		void   interpolateMissingRecords ();
-    // 		void   interpolateMissingRecords (DataCode dtc);
-    // 		void   removeInterpolateRecords ();
-
-    // 		int countGribRecords (ZUFILE *f);
-
-    // 	protected:
-    //         ZUFILE *file;
-    //         void clean_vector(std::vector<GribRecord *> &ls);
-    //         void clean_all_vectors();
-    //         void createListDates ();
-    //         //void removeRecordInMap (GribRecord *rec);
-    // 		void computeMissingData ();   // RH DewPoint ThetaE
-    // 		void analyseRecords ();
-
-    // 		int seekgb_zu (
-    // 				ZUFILE *lugb, g2int iseek, g2int mseek, g2int *lskip, g2int *lgrib);
+    int getBandsNumber() const;
+    const char* getBandDescription(int bandNumber) const;
 
 private:
+    enum class Transformation 
+    {
+        None,
+        TransofrmArray,
+        GCPTransform
+    } transformation;
+
+    QSharedPointer<char> transformAlg;
     GDALDataset *dataset;
-    //         bool checkAndStoreRecordInMap (GribRecord *rec);
-    //         bool storeRecordInMap (GribRecord *rec);
-    // 		void readGribFileContent (int nbrecs);
-    // 		bool readGribRecord(int id);
-    // 		//bool readGrib2Record(int id);
-    // 		bool readGrib2Record(int id, g2int lgrib);
-
-    // 		std::vector<std::shared_ptr<GribRecord>> * getListOfGribRecords (DataCode dtc);
-    //         int	   dewpointDataStatus;
-    // 		bool   hasAltitude;
-    // 		bool   ambiguousHeader;
-
-    //         std::map <uint64_t, std::vector<std::shared_ptr<GribRecord>>* >  mapGribRecords;
-
-    //         void   openFilePriv (const QString& fname, int nbrecs);
-
-    //         std::vector<std::shared_ptr<GribRecord>> *  getFirstNonEmptyList();
-
-    // 		double   computeDewPoint (double lon, double lat, time_t date);
-    // 		double   computeHumidRel (double lon, double lat, time_t date);
-
-    // 		// Interpolation entre 2 GribRecord
-    // 		double 	get2GribsInterpolatedValueByDate (
-    // 									double px, double py, time_t date,
-    // 									GribRecord *before, GribRecord *after);
-    // 		// Détermine les GribRecord qui encadrent une date
-    // 		void 	findGribsAroundDate (DataCode dtc, time_t date,
-    // 									GribRecord **before, GribRecord **after);
-    // };
+    double transform[6];
+    double invTransform[6];
 };
 #endif // SATTELLITEREADER_H
