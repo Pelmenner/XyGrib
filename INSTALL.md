@@ -16,7 +16,13 @@ https://gihub.com/opengribs/XyGrib/releases or on https://opengribs.org in the d
 ### Linux
 
 - Install the required libraries
-  - Ubuntu (recent editions): 
+  - Ubuntu (21.04+): 
+  ```shell
+    sudo add-apt-repository ppa:ubuntugis/ppa
+    sudo apt-get update
+    sudo apt-get install build-essential git cmake qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools  qttools5-dev libpng-dev libopenjp2-7-dev libnova-dev libproj-dev zlib1g-dev libbz2-dev libgdal-dev
+  ```
+  - Ubuntu (16.04-20.04): 
   ```shell
     sudo add-apt-repository ppa:ubuntugis/ppa
     sudo apt-get update
