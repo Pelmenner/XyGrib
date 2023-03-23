@@ -71,7 +71,10 @@ public:
     void updateDateSelector();
     void showSatelliteData (bool visible);
     void setSatelliteLayer (int layer);
-    void updateSatelliteLayers (const SatelliteReader* reader);
+    void setSatelliteLayer (int subdataset, int layer);
+    void updateSatelliteLayers (SatelliteReader* reader);
+    void updateSatelliteSubdatasets(SatelliteReader* reader);
+    void updateSatelliteSubdatasetLayers(int subdataset, SatelliteReader* reader);
     void resetSatelliteLayers ();
 
     time_t  getDateGribById (int id);
@@ -341,6 +344,8 @@ public:
     QMenu *menuSatelliteLayer;
     QActionGroup *acSatellite_GroupLayer;
         QVector<QAction*> acSatellite_Layers;
+    QVector<QMenu*> menuSatelliteSubdatasetLayers;
+        QVector<QVector<QAction*>> acSatellite_SubdatasetLayers;
     
 
     QMenu *menuFile;

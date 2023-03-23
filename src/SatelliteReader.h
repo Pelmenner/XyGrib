@@ -34,6 +34,14 @@
 class SatelliteReader : public LongTaskMessage
 {
 public:
+    struct Subdataset
+    {
+        Subdataset(const QString& metaName, const QString& metaDescription);
+
+        QString path;
+        QString description;
+    };
+
     SatelliteReader();
     ~SatelliteReader();
 
@@ -41,19 +49,28 @@ public:
     bool isOk() const;
     void closeCurrentFile();
 
-    GDALRasterBand *getRecord(int bandNumber) const;
-    GDALRasterBand *getRecord() const;
-    bool setGeoTransform(double adfGeoTransform[6]);
+    GDALRasterBand *getRecord(int bandNumber);
+    GDALRasterBand *getRecord(int subdatasetNumber, int bandNumber);
+    GDALRasterBand* getSubdataset(int subdatasetNumber);
 
     void transformMapToScreen(double lon, double lat, double *x, double *y);
     void transformScreenToMap(double x, double y, double *lon, double *lat);
 
-    void initTransform();
-
+    int getSubdatasetsNumber() const;
     int getBandsNumber() const;
-    const char* getBandDescription(int bandNumber) const;
+    int getSubdatasetBandsNumber(int subdatasetNumber);
+    QString getSubdatasetDescription(int subdatasetNumber);
+    QString getBandDescription(int bandNumber) const;
+    QString getSubdatasetBandDescriptiion(int subdatasetNumber, int bandNumber);
 
 private:
+    void initTransform();
+    bool setGCPTransform();
+    bool setGeoTransform(double adfGeoTransform[6]);
+    void initSubdatasets();
+    void openSubdataset(int subdatasetNumber);
+    void closeSubdataset();
+
     enum class Transformation 
     {
         None,
@@ -63,7 +80,11 @@ private:
 
     QSharedPointer<char> transformAlg;
     GDALDataset *dataset;
+    GDALDataset* subdataset;
+    GDALDataset* activeDataset;
+    int openSubdatasetNumber;
     double transform[6];
     double invTransform[6];
+    QVector<Subdataset> subdatasets;
 };
 #endif // SATTELLITEREADER_H

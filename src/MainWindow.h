@@ -224,6 +224,8 @@ public slots:
         						int dataType,int levelType,int levelValue,
         						bool *ok=NULL);
 		void		initProjection();
+        
+        void setActiveSatelliteLayer();
 		
         int  mouseClicX, mouseClicY;
 		void updateBoardPanel ();
@@ -231,6 +233,7 @@ public slots:
 
         bool selectToggled; // true - select mode, false - pan mode
         void setSelectPanToggle(bool isSelect);
+        
 
 		void closeEvent (QCloseEvent *) {QApplication::quit();}
 		void moveEvent  (QMoveEvent *event);

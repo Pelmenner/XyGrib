@@ -841,6 +841,17 @@ void Terrain::setSatelliteLayer(int layer)
     }
 }
 
+//-------------------------------------------------------
+void Terrain::setSatelliteLayer(int subdataset, int layer)
+{
+    if (satellitePlotter != nullptr)
+    {
+        satellitePlotter->setLayer(subdataset, layer);
+        mustRedraw = true;
+        update();
+    }
+}
+
 //---------------------------------------------------------
 void   Terrain::closeMeteoDataFile()
 {

@@ -17,14 +17,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
 #include "SatellitePlotter.h"
+#include "gdal_priv.h"
 #include "qdebug.h"
 #include "SatelliteValueLimiter.h"
 
-SatellitePlotter::SatellitePlotter() : reader(nullptr), layer(0), rgb(false)
+SatellitePlotter::SatellitePlotter() : reader(nullptr), layer(0), subdataset(-1), rgb(false)
 {
 }
 
-SatellitePlotter::SatellitePlotter(const SatellitePlotter &p) : reader(p.reader), layer(layer), rgb(rgb)
+SatellitePlotter::SatellitePlotter(const SatellitePlotter &p) : reader(p.reader), layer(p.layer), subdataset(p.subdataset), rgb(p.rgb)
 {
 }
 
@@ -40,11 +41,19 @@ bool isPointInsideBounds(int x, int y, GDALRasterBand *pBand)
     return 0 <= x && x < pBand->GetXSize() && 0 <= y && y < pBand->GetYSize();
 }
 
+float getNoDataValue(GDALRasterBand* band)
+{
+    int hasNoDataValue = false;
+    float noDataValue = band->GetNoDataValue(&hasNoDataValue);
+    if (!hasNoDataValue)
+        return 0;
+    return noDataValue;
+}
+
 void drawPixelGrayscale(QImage *image, int imageX, int imageY, int dataX, int dataY, GDALRasterBand *band, SatelliteValueLimiter& lim)
 {
     float value = getPixelValue(dataX, dataY, band);
-    float noDataValue = band->GetNoDataValue();
-    if (value == noDataValue)
+    if (value == getNoDataValue(band))
         return;
 
     value = lim.transform(value);
@@ -62,7 +71,7 @@ void drawPixelRGB(QImage *image, int imageX, int imageY, int dataX, int dataY, G
     for (int i = 0; i < 3; ++i)
     {
         colors[i] = getPixelValue(dataX, dataY, bands[i]);
-        if (colors[i] == bands[i]->GetNoDataValue())
+        if (colors[i] == getNoDataValue(bands[i]))
             ++noValueBandsCount;
     }
     if (noValueBandsCount == 3)
@@ -99,14 +108,23 @@ void SatellitePlotter::draw(QPainter &pnt, Projection *proj)
     if (rgb)
     {
         for (int i = 0; i < 3; ++i)
+        {
             bands[i] = reader->getRecord(i + 1);
+            if (bands[i] == nullptr)
+                return;
+        }
     }
     else
     {
-        bands[0] = reader->getRecord(layer + 1);
+        if (subdataset == -1)
+            bands[0] = reader->getRecord(layer + 1);
+        else
+            bands[0] = reader->getRecord(subdataset, layer + 1);
+        if (bands[0] == nullptr)
+            return;
     }
 
-    SatelliteValueLimiter lim(bands[0], 500);
+    SatelliteValueLimiter lim(bands[0]);
         
     for (int i = 0; i < W - 1; i += 2)
     {
@@ -158,6 +176,7 @@ bool SatellitePlotter::isReaderOk() const
 
 void SatellitePlotter::setLayer(int newLayer)
 {
+    subdataset = -1;
     layer = newLayer;
     if (reader != nullptr && layer == reader->getBandsNumber())
         rgb = true;
@@ -165,7 +184,13 @@ void SatellitePlotter::setLayer(int newLayer)
         rgb = false;
 }
 
-const SatelliteReader *SatellitePlotter::getReader() const
+void SatellitePlotter::setLayer(int newSubdataset, int newLayer)
+{
+    subdataset = newSubdataset;
+    layer = newLayer;
+}
+
+SatelliteReader *SatellitePlotter::getReader()
 {
     return reader.data();
 }

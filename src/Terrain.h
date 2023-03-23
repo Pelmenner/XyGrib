@@ -55,6 +55,7 @@ public:
 
     void loadSatelliteDataFile(const QString& fileName);
     void setSatelliteLayer (int layer);
+    void setSatelliteLayer (int subdataset, int layer);
 
 	void  closeMeteoDataFile();
 

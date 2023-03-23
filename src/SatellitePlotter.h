@@ -44,13 +44,15 @@ class SatellitePlotter
 
         bool isReaderOk() const;
         void setLayer(int newLayer);
-        const SatelliteReader* getReader() const;
+        void setLayer(int subdataset, int newLayer);
+        SatelliteReader* getReader();
     
     private:
         QSharedPointer<SatelliteReader> reader;
         QString fileName;
         time_t currentDate;
         int layer;
+        int subdataset;
         bool rgb;
 };
 

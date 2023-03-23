@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 #include <QFile>
+#include <qmenu.h>
 
 #include "MenuBar.h"
 #include "Font.h"
@@ -732,8 +733,14 @@ void MenuBar::setSatelliteLayer(int layer)
     acSatellite_Layers[layer]->setChecked(true);
 }
 
+//-----------------------------------------------------------
+void MenuBar::setSatelliteLayer(int subdataset, int layer)
+{
+    acSatellite_SubdatasetLayers[subdataset][layer]->setChecked(true);
+}
+
 //----------------------------------------------------------------
-void MenuBar::updateSatelliteLayers(const SatelliteReader *reader)
+void MenuBar::updateSatelliteLayers(SatelliteReader *reader)
 {
     resetSatelliteLayers();
     int bandsNumber = reader->getBandsNumber();
@@ -743,17 +750,50 @@ void MenuBar::updateSatelliteLayers(const SatelliteReader *reader)
         if (description == "")
             description = QStringLiteral("Band #%1").arg(i + 1);
         QAction* acLayer = addGroup(acSatellite_GroupLayer, menuSatelliteLayer, description, "", description);
-        acSatellite_Layers.push_back(acLayer);
+        acSatellite_Layers.append(acLayer);
     }
     if (bandsNumber == 3)
     {
         QAction* acLayer = addGroup(acSatellite_GroupLayer, menuSatelliteLayer, "RGB", "", 
                                     tr("Use first 3 channels as RGB"));
-        acSatellite_Layers.push_back(acLayer);
+        acSatellite_Layers.append(acLayer);
     }
-    menuSatelliteLayer->setEnabled(bandsNumber > 0);
+
+    menuSatelliteLayer->setEnabled(acSatellite_Layers.size() + acSatellite_SubdatasetLayers.size() > 0);
 }
 
+//----------------------------------------------------------------
+void MenuBar::updateSatelliteSubdatasets(SatelliteReader* reader)
+{
+    int subdatasetsNumber = reader->getSubdatasetsNumber();
+    for (int i = 0; i < subdatasetsNumber; ++i)
+    {
+        QString description = reader->getSubdatasetDescription(i);
+        QMenu* subdatasetMenu = new QMenu(description);
+        menuSatelliteLayer->addMenu(subdatasetMenu);
+        menuSatelliteSubdatasetLayers.append(subdatasetMenu);
+        acSatellite_SubdatasetLayers.append(QVector<QAction*>());
+        updateSatelliteSubdatasetLayers(i, reader);
+    }
+    
+    menuSatelliteLayer->setEnabled(acSatellite_Layers.size() + acSatellite_SubdatasetLayers.size() > 0);
+}
+
+//-----------------------------------------------------------------------
+void MenuBar::updateSatelliteSubdatasetLayers(int subdataset, SatelliteReader* reader)
+{
+    int bandsNumber = reader->getSubdatasetBandsNumber(subdataset);
+    for (int i = 0; i < bandsNumber; ++i)
+    {
+        QString description = reader->getSubdatasetBandDescriptiion(subdataset, i + 1);
+        if (description == "")
+            description = QStringLiteral("Band #%1").arg(i + 1);
+        QAction* acLayer = addGroup(acSatellite_GroupLayer, menuSatelliteSubdatasetLayers[subdataset], description, "", description);
+        acSatellite_SubdatasetLayers[subdataset].append(acLayer);
+    }
+}
+
+//-----------------------------------------------------
 void MenuBar::resetSatelliteLayers()
 {
     menuSatelliteLayer->setVisible(false);
@@ -761,6 +801,10 @@ void MenuBar::resetSatelliteLayers()
         layer->deleteLater();
     acSatellite_Layers.clear();
     menuSatelliteLayer->setEnabled(false);
+    for (auto menu : menuSatelliteSubdatasetLayers)
+        menu->deleteLater();
+    menuSatelliteSubdatasetLayers.clear();
+    acSatellite_SubdatasetLayers.clear();
 }
 
 //------------------------------------------------------------

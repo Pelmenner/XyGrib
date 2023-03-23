@@ -1108,16 +1108,15 @@ void MainWindow::openSatelliteDataFile(const QString &fileName)
 	Util::setSetting ("satelliteFileName",  fileName);
 	
 	SatellitePlotter *plotter = terre->getSatellitePlotter ();
-    if (plotter!=nullptr && plotter->isReaderOk ())
+	if (plotter!=nullptr && plotter->isReaderOk ())
 	{
 	    disableMenubarItems ();
 	    setMenubarItems ();
 		menuBar->updateSatelliteLayers(plotter->getReader());
+		menuBar->updateSatelliteSubdatasets(plotter->getReader());
 		satelliteImageFileName = fileName;
 		menuBar->acSatellite_ShowImages->setChecked (true);
-		menuBar->acSatellite_Layers.last()->setChecked (true);
-		terre->setSatelliteLayer(menuBar->acSatellite_Layers.size() - 1);
-		terre->slotMustRedraw ();
+		setActiveSatelliteLayer();
 	}
 	else
 	{
@@ -1126,6 +1125,29 @@ void MainWindow::openSatelliteDataFile(const QString &fileName)
 	}
 	setCursor (oldcursor);
 }
+//------------------------------------------------------
+void MainWindow::setActiveSatelliteLayer()
+{
+	if (!menuBar->acSatellite_Layers.empty())
+	{
+		menuBar->acSatellite_Layers.last()->setChecked (true);
+		terre->setSatelliteLayer(menuBar->acSatellite_Layers.size() - 1);
+	}
+	else 
+	{
+		for (int subdataset = 0; subdataset < menuBar->acSatellite_SubdatasetLayers.size(); ++subdataset)
+		{
+			if (!menuBar->acSatellite_SubdatasetLayers[subdataset].empty())
+			{
+				menuBar->acSatellite_SubdatasetLayers[subdataset].last()->setChecked(true);
+				terre->setSatelliteLayer(subdataset, menuBar->acSatellite_SubdatasetLayers[subdataset].size() - 1);
+				break;
+			}
+		}
+	}	
+	terre->slotMustRedraw ();
+}
+
 //-------------------------------------------------------
 void MainWindow::slotUseJetStreamColorMap (bool b) 
 {
@@ -1748,6 +1770,17 @@ void MainWindow::slotSatellite_Layer(QAction *ac)
 		{
 			terre->setSatelliteLayer(i);
 			return;
+		}
+	}
+	for (int subdataset = 0; subdataset < menuBar->acSatellite_SubdatasetLayers.size(); ++subdataset)
+	{
+		for (int layer = 0; layer < menuBar->acSatellite_SubdatasetLayers[subdataset].size(); ++layer)
+		{
+			if (ac == menuBar->acSatellite_SubdatasetLayers[subdataset][layer])
+			{
+				terre->setSatelliteLayer(subdataset, layer);
+				return;
+			}
 		}
 	}
 }

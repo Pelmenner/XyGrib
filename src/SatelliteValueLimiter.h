@@ -3,15 +3,20 @@
 
 #include "gdal_priv.h"
 
+const int HISTOGRAM_BINS_NUMBER = 1000;
+
 class SatelliteValueLimiter
 {
 public:
-    SatelliteValueLimiter(GDALRasterBand* band, float windowSize);
+    SatelliteValueLimiter(GDALRasterBand* band);
     float transform(float value);
 
 private:
-    float k;
-    float b;
+    int getBin(float value);
+
+    double minValue;
+    double maxValue;
+    float transformMap[HISTOGRAM_BINS_NUMBER + 1];
 };
 
 #endif // SATELLITEVALUELIMITER_H
