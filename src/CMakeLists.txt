@@ -51,7 +51,7 @@ RegularGridded.h
 RegularGriddedPlot.h
 SatellitePlotter.h
 SatelliteReader.h
-SatelliteValueLimiter.h
+SatelliteImageEqualizer.h
 SkewT.h
 Stylesheet.h
 Terrain.h
@@ -101,7 +101,7 @@ MeteoTableWidget.cpp
 MeteotableOptionsDialog.cpp
 SatellitePlotter.cpp
 SatelliteReader.cpp
-SatelliteValueLimiter.cpp
+SatelliteImageEqualizer.cpp
 SkewT.cpp
 SkewTWindow.cpp
 Terrain.cpp

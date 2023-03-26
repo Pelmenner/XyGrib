@@ -19,16 +19,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SATELLITEPLOTTER_H
 #define SATELLITEPLOTTER_H
 
-#include <QPainter>
-#include "gdal_priv.h"
-#include <QSharedPointer>
-
-#include "DataPointInfo.h"
 #include "LongTaskProgress.h"
 #include "IsoLine.h"
 #include "SatelliteReader.h"
  
-//===============================================================
+#include <QPainter>
+#include "gdal_priv.h"
+#include <QSharedPointer>
+
 class SatellitePlotter
 {
     public:
@@ -48,6 +46,8 @@ class SatellitePlotter
         SatelliteReader* getReader();
     
     private:
+        void fillBands(GDALRasterBand *bands[3]);
+
         QSharedPointer<SatelliteReader> reader;
         QString fileName;
         time_t currentDate;

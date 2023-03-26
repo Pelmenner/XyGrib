@@ -17,9 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***********************************************************************/
 
 #include "SatellitePlotter.h"
+#include "SatelliteImageEqualizer.h"
+
 #include "gdal_priv.h"
-#include "qdebug.h"
-#include "SatelliteValueLimiter.h"
+#include <QDebug>
 
 SatellitePlotter::SatellitePlotter() : reader(nullptr), layer(0), subdataset(-1), rgb(false)
 {
@@ -50,13 +51,13 @@ float getNoDataValue(GDALRasterBand* band)
     return noDataValue;
 }
 
-void drawPixelGrayscale(QImage *image, int imageX, int imageY, int dataX, int dataY, GDALRasterBand *band, SatelliteValueLimiter& lim)
+void drawPixelGrayscale(QImage *image, int imageX, int imageY, int dataX, int dataY, GDALRasterBand *band, SatelliteImageEqualizer& equalizer)
 {
     float value = getPixelValue(dataX, dataY, band);
     if (value == getNoDataValue(band))
         return;
 
-    value = lim.transform(value);
+    value = equalizer.transform(value);
     QRgb rgb = qRgb(value, value, value);
     image->setPixel(imageX, imageY, rgb);
     image->setPixel(imageX + 1, imageY, rgb);
@@ -98,13 +99,38 @@ void SatellitePlotter::draw(QPainter &pnt, Projection *proj)
     if (!isReaderOk())
         return;
 
-    double lon, lat, pixelX, pixelY;
     int W = proj->getW();
     int H = proj->getH();
     QImage *image = new QImage(W, H, QImage::Format_ARGB32);
     image->fill(qRgba(0, 0, 0, 0));
 
     GDALRasterBand *bands[3];
+    fillBands(bands);
+
+    SatelliteImageEqualizer equalizer(bands[0]);
+        
+    double lon, lat, pixelX, pixelY;
+    for (int i = 0; i < W - 1; i += 2)
+    {
+        for (int j = 0; j < H - 1; j += 2)
+        {
+            screenToMap(proj, i, j, &lon, &lat);
+            reader->transformMapToScreen(lon, lat, &pixelX, &pixelY);
+            if (!isPointInsideBounds(pixelX, pixelY, bands[0]))
+                continue;
+
+            if (rgb)
+                drawPixelRGB(image, i, j, pixelX, pixelY, bands);
+            else
+                drawPixelGrayscale(image, i, j, pixelX, pixelY, bands[0], equalizer);
+        }
+    }
+    pnt.drawImage(0, 0, *image);
+    delete image;
+}
+
+void SatellitePlotter::fillBands(GDALRasterBand *bands[3])
+{
     if (rgb)
     {
         for (int i = 0; i < 3; ++i)
@@ -120,29 +146,10 @@ void SatellitePlotter::draw(QPainter &pnt, Projection *proj)
             bands[0] = reader->getRecord(layer + 1);
         else
             bands[0] = reader->getRecord(subdataset, layer + 1);
+
         if (bands[0] == nullptr)
             return;
     }
-
-    SatelliteValueLimiter lim(bands[0]);
-        
-    for (int i = 0; i < W - 1; i += 2)
-    {
-        for (int j = 0; j < H - 1; j += 2)
-        {
-            screenToMap(proj, i, j, &lon, &lat);
-            reader->transformMapToScreen(lon, lat, &pixelX, &pixelY);
-            if (!isPointInsideBounds(pixelX, pixelY, bands[0]))
-                continue;
-
-            if (rgb)
-                drawPixelRGB(image, i, j, pixelX, pixelY, bands);
-            else
-                drawPixelGrayscale(image, i, j, pixelX, pixelY, bands[0], lim);
-        }
-    }
-    pnt.drawImage(0, 0, *image);
-    delete image;
 }
 
 void SatellitePlotter::loadFile(const QString &fileName,

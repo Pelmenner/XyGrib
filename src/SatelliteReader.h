@@ -16,20 +16,15 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // ***********************************************************************/
 
-// /*************************
-// Lecture mise en mémoire d'un fichier GRIB
-
-// *************************/
-
 #ifndef SATELLITEREADER_H
 #define SATELLITEREADER_H
+
+#include "RegularGridded.h"
+#include "LongTaskMessage.h"
 
 #include "gdal_priv.h"
 #include <QString>
 #include <QSharedPointer>
-
-#include "RegularGridded.h"
-#include "LongTaskMessage.h"
 
 class SatelliteReader : public LongTaskMessage
 {
